@@ -1,0 +1,54 @@
+name: Build and Publish Images
+description: "Publishes model-server and model-server-base images to an Image Registry"
+inputs:
+  image_registry:
+    description: "Image Registry"
+    required: true
+  registry_login:
+    description: "Registry Username"
+    required: true
+  registry_token:
+    description: "Registry Token"
+    required: true
+
+  version:
+    description: "Version"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Login to Image Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ inputs.image_registry }}
+        username: ${{ inputs.registry_login }}
+        password: ${{ inputs.registry_token }}
+
+    - name: Build model-server
+      shell: bash
+      run: |
+        make build
+      env:
+        IMAGE_VERSION: ${{ inputs.version }}
+        IMAGE_REGISTRY: ${{ inputs.image_registry }}
+
+    - name: Build model-server-base
+      shell: bash
+      run: |
+        make build-base
+      env:
+        IMAGE_VERSION: ${{ inputs.version }}
+        IMAGE_REGISTRY: ${{ inputs.image_registry }}
+
+    - name: Push images
+      if: "!startsWith(inputs.image_registry, 'localhost')"
+      shell: bash
+      run: |
+        make push push-base
+      env:
+        IMAGE_VERSION: ${{ inputs.version }}
+        IMAGE_REGISTRY: ${{ inputs.image_registry }}
