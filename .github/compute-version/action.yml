@@ -1,0 +1,16 @@
+name: Compute Version
+description: compute version for kepler-model-server and kepler-model-server-base
+outputs:
+  version:
+    description: "version"
+    value: ${{ steps.version.outputs.version }}
+runs:
+  using: composite
+  steps:
+    - name: Get Version
+      id: version
+      shell: bash
+      run: |
+        version="$(cat VERSION)-$(date +%Y%m%d%H%M%S)"
+        echo "VERSION=$version"
+        echo "version=$version" >> $GITHUB_OUTPUT
